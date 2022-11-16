@@ -1,0 +1,76 @@
+#!/bin/bash
+
+set -e
+
+has_repo() {
+        local path="$1"
+        test -d "${path}/.git/"
+}
+
+repo_url() {
+        local path="$1"
+        git config -f "${path}/.git/config" --get remote.origin.url
+}
+
+organize() {
+        local path=$(realpath "$1" 2>/dev/null)
+
+        if [[ -z "${path}" ]]; then
+                return 0
+        fi
+
+        if ! has_repo "${path}"; then
+                #echo "[DD] ${path} is not a git repository."
+                return 0
+        fi
+
+        local repopath="$(repo_url "$path" | sed -r 's|\w+://||' | cut -d'@' -f2- | sed -r 's|\:[[:digit:]]+||' | sed 's|:|/|g' | sed -r 's|\.git$||')"
+
+        if [[ -z "$repopath" ]]; then
+                echo "[WW] ${path} does not have an upstream, ignoring"
+                return 0
+        fi
+
+        local newpath="${HOME}/src/${repopath}"
+        local dir=$(dirname "$newpath")
+
+        if [[ $(realpath "$path") = $(realpath "$newpath" 2>/dev/null) ]]; then
+                #echo "[DD] $path is already where it should be"
+                return 0
+        fi
+
+        if [[ -e "${newpath}" ]]; then
+                echo "[EE] can't organize ${path}, ${newpath} already exists"
+                return 1
+        fi
+
+        #echo "[DD] making directory ${dir}"
+        mkdir -p "${dir}"
+
+        echo "[II] moving $path to ${newpath}"
+        mv "${path}" "$newpath"
+}
+
+organize_dir() {
+        local path="$1"
+
+        if has_repo "${path}"; then
+                organize "$path"
+                return 0
+        fi
+
+        for subpath in "${path}/"*; do
+                organize "$subpath" || echo "[EE] error organizing ${subpath}"
+        done
+}
+
+paths=("$@")
+
+if [[ -z "$paths" ]]; then
+	echo "usage: $0 <path> [path...]"
+	exit 1
+fi
+
+for path in "$@"; do
+        organize_dir "$path"
+done
