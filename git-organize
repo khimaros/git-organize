@@ -35,7 +35,7 @@ organize() {
         local dir=$(dirname "$newpath")
 
         if [[ $(realpath "$path") = $(realpath "$newpath" 2>/dev/null) ]]; then
-                #echo "[DD] $path is already where it should be"
+                echo "[DD] $path is already where it should be"
                 return 0
         fi
 
@@ -54,23 +54,37 @@ organize() {
 organize_dir() {
         local path="$1"
 
+	echo "[II] organizing all repositories at path \"${path}\""
+
         if has_repo "${path}"; then
-                organize "$path"
+                organize "$path" || echo "[EE] error organizing ${path}"
                 return 0
         fi
+
+	if [[ ! -d "$path" ]]; then
+		return 0
+	fi
+
+	echo "[II] recursing into directory ${path}"
 
         for subpath in "${path}/"*; do
                 organize "$subpath" || echo "[EE] error organizing ${subpath}"
         done
 }
 
-paths=("$@")
+main() {
+	paths=("$@")
 
-if [[ -z "$paths" ]]; then
-	echo "usage: $0 <path> [path...]"
-	exit 1
+	if [[ -z "$paths" ]]; then
+		echo "usage: $0 <path> [path...]"
+		exit 1
+	fi
+
+	for path in "$@"; do
+		organize_dir "$path"
+	done
+}
+
+if [[ $(basename "$0") == "git-organize" ]]; then
+	main "$@"
 fi
-
-for path in "$@"; do
-        organize_dir "$path"
-done

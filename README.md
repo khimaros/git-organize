@@ -40,3 +40,10 @@ which is a git repository:
 ```shell
 $ git organize .
 ```
+
+there is also another script `git-cl` which clones to a temp dir and then
+automatically runs `git-organize` on the cloned repository.
+
+```shell
+$ git cl https://github.com/khimaros/git-organize
+```

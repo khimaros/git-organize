@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+tempdir=$(mktemp -d "$0.XXXXXXXX")
+
+git clone "$@" "$tempdir/"
+
+git organize "$tempdir/"
