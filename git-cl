@@ -2,7 +2,7 @@
 
 set -e
 
-tempdir=$(mktemp -d "$0.XXXXXXXX")
+tempdir=$(mktemp -d "/tmp/git-cl.XXXXXXXX")
 
 git clone "$@" "$tempdir/"
 
