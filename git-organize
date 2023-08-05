@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+
+GIT_ORGANIZE_BASE="${GIT_ORGANIZE_BASE:="${HOME}/src"}"
 
 has_repo() {
         local path="$1"
@@ -12,6 +14,14 @@ repo_url() {
         git config -f "${path}/.git/config" --get remote.origin.url
 }
 
+repo_dest_path() {
+        local url="$1"
+
+	local repopath=$(echo "$url" | sed -r 's|\w+://||' | cut -d'@' -f2- | sed -r 's|\:[[:digit:]]+||' | sed 's|:|/|g' | sed -r 's|\.git$||')
+
+	echo "${GIT_ORGANIZE_BASE}/${repopath}"
+}
+
 organize() {
         local path=$(realpath "$1" 2>/dev/null)
 
@@ -20,18 +30,18 @@ organize() {
         fi
 
         if ! has_repo "${path}"; then
-                #echo "[DD] ${path} is not a git repository."
+                #echo "[DD] ${path} is not a git repository." >&2
                 return 0
         fi
 
-        local repopath="$(repo_url "$path" | sed -r 's|\w+://||' | cut -d'@' -f2- | sed -r 's|\:[[:digit:]]+||' | sed 's|:|/|g' | sed -r 's|\.git$||')"
-
-        if [[ -z "$repopath" ]]; then
-                echo "[WW] ${path} does not have an upstream, ignoring"
+	local repourl="$(repo_url "$path")"
+        if [[ -z "$repourl" ]]; then
+                echo "[WW] ${path} does not have an upstream, ignoring" >&2
                 return 0
         fi
 
-        local newpath="${HOME}/src/${repopath}"
+	local newpath="$(repo_dest_path "$repourl")"
+
         local dir=$(dirname "$newpath")
 
         if [[ $(realpath "$path") = $(realpath "$newpath" 2>/dev/null) ]]; then

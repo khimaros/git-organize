@@ -2,8 +2,17 @@
 
 set -e
 
-tempdir=$(mktemp -d "/tmp/git-cl.XXXXXXXX")
+source "$(dirname "$0")/git-organize"
 
-git clone "$@" "$tempdir/"
+url="${@:$#}"
 
-git organize "$tempdir/"
+echo "[II] cloning git path $url ..."
+
+newpath=$(repo_dest_path "$url")
+
+if [[ -e "${newpath}" ]]; then
+	echo "[EE] $newpath already exists"
+	exit 1
+fi
+
+git clone "$@" "$newpath/"

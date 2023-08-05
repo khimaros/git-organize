@@ -34,6 +34,9 @@ huggingface.co/
 
 clone this repository and add it to your path
 
+if you'd like the repositories to be moved somewhere other than `~/src`,
+set `$GIT_ORGANIZE_BASE` to another path.
+
 run the following in a directory containing at least one subdirectory
 which is a git repository:
 
@@ -41,8 +44,7 @@ which is a git repository:
 $ git organize .
 ```
 
-there is also another script `git-cl` which clones to a temp dir and then
-automatically runs `git-organize` on the cloned repository.
+there is also another script `git-cl` which clones to the correct directory.
 
 ```shell
 $ git cl https://github.com/khimaros/git-organize
